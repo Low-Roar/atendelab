@@ -21,19 +21,21 @@ class DashboardController
     {
         try {
 
-            $totalPessoas = (int) $this->pdo
-                ->query('SELECT COUNT(*) FROM pessoas')
-                ->fetchColumn();
+            $consultas = [
+                'total_pessoas' => 'SELECT COUNT(*) FROM pessoas',
+                'total_tipos' => 'SELECT COUNT(*) FROM tipos_atendimentos',
+                'total_atendimentos' => 'SELECT COUNT(*) FROM atendimentos'
+            ];
 
-            $totalTipos = (int) $this->pdo
-                ->query('SELECT COUNT(*) FROM tipos_atendimentos')
-                ->fetchColumn();
+            $indicadores = [];
 
-            $totalAtendimentos = (int) $this->pdo
-                ->query('SELECT COUNT(*) FROM atendimentos')
-                ->fetchColumn();
+            foreach ($consultas as $indice => $sql) {
+                $indicadores[$indice] = (int) $this->pdo
+                    ->query($sql)
+                    ->fetchColumn();
+            }
 
-            $sql = "
+            $consultaRecentes = "
                 SELECT
                     a.id,
                     p.nome AS pessoa,
@@ -43,31 +45,38 @@ class DashboardController
                     a.data_atendimento,
                     a.horario_atendimento
                 FROM atendimentos a
-                INNER JOIN pessoas p ON p.id = a.pessoa_id
-                INNER JOIN tipos_atendimentos t ON t.id = a.tipo_atendimento_id
-                INNER JOIN usuarios u ON u.id = a.usuario_id
-                ORDER BY a.data_atendimento DESC, a.horario_atendimento DESC, a.id DESC
+                    INNER JOIN pessoas p
+                        ON p.id = a.pessoa_id
+                    INNER JOIN tipos_atendimentos t
+                        ON t.id = a.tipo_atendimento_id
+                    INNER JOIN usuarios u
+                        ON u.id = a.usuario_id
+                ORDER BY
+                    a.data_atendimento DESC,
+                    a.horario_atendimento DESC,
+                    a.id DESC
                 LIMIT 5
             ";
 
-            $recentes = $this->pdo
-                ->query($sql)
+            $atendimentos = $this->pdo
+                ->query($consultaRecentes)
                 ->fetchAll(PDO::FETCH_ASSOC);
 
-            $this->json([
-                'indicadores' => [
-                    'total_pessoas' => $totalPessoas,
-                    'total_tipos' => $totalTipos,
-                    'total_atendimentos' => $totalAtendimentos,
+            $resposta = [
+                'indicadores' => $indicadores,
+                'atendimentos_recentes' => $atendimentos
+            ];
+
+            $this->json($resposta);
+
+        } catch (PDOException $erro) {
+
+            $this->json(
+                [
+                    'erro' => 'Erro ao carregar o dashboard.'
                 ],
-                'atendimentos_recentes' => $recentes
-            ]);
-
-        } catch (PDOException $e) {
-
-            $this->json([
-                'erro' => 'Erro ao carregar o dashboard.'
-            ], 500);
+                500
+            );
 
         }
     }
