@@ -65,8 +65,7 @@ onclick="fecharFormulario()">Cancelar</button></div>
     function abrirFormulario() {
         cardFormulario.classList.remove('d-none');
 
-        window.scrollTo({
-            top: 0,
+        window.scrollTo({top: 0,
             behavior: 'smooth'
         });
     }
@@ -85,10 +84,7 @@ onclick="fecharFormulario()">Cancelar</button></div>
 
     async function carregarTipos() {
         try {
-            const resposta = await AtendeLabApi.get(
-                'tipos',
-                'listar'
-            );
+            const resposta = await AtendeLabApi.get('tipos','listar');
 
             const tipos = AtendeLabApi.toList(resposta);
             if (tipos.length === 0) {
@@ -150,11 +146,7 @@ onclick="fecharFormulario()">Cancelar</button></div>
     }
     async function editarTipo(id) {
         try {
-            const resposta = await AtendeLabApi.get(
-                'tipos',
-                'buscar',
-                { id }
-            );
+            const resposta = await AtendeLabApi.get('tipos','buscar',{ id });
 
             const tipo = AtendeLabApi.toObject(resposta);
 
@@ -169,11 +161,7 @@ onclick="fecharFormulario()">Cancelar</button></div>
             }
 
         } catch (error) {
-            AtendeLabApi.showAlert(
-                'alerta',
-                error.message,
-                'danger'
-            );
+            AtendeLabApi.showAlert('alerta',error.message,'danger');
         }
     }
     formTipo.addEventListener('submit', async (event) => {
